@@ -1,0 +1,61 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, TextInput, FlatList } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function App() {
+  const [santri, setSantri] = useState([]);
+  const [nama, setNama] = useState('');
+  const [kelas, setKelas] = useState('');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const saveData = async (data) => {
+    await AsyncStorage.setItem('SANTRI', JSON.stringify(data));
+  };
+
+  const loadData = async () => {
+    const data = await AsyncStorage.getItem('SANTRI');
+    if (data) setSantri(JSON.parse(data));
+  };
+
+  const tambahSantri = () => {
+    const dataBaru = [...santri, { nama, kelas, hadir: 0 }];
+    setSantri(dataBaru);
+    saveData(dataBaru);
+    setNama('');
+    setKelas('');
+  };
+
+  const tambahHadir = (index) => {
+    let data = [...santri];
+    data[index].hadir += 1;
+    setSantri(data);
+    saveData(data);
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 22, fontWeight: 'bold' }}>
+        📱 Sistem Ibadah Santri
+      </Text>
+
+      <TextInput placeholder="Nama" value={nama} onChangeText={setNama} style={{ borderWidth:1, marginVertical:5 }}/>
+      <TextInput placeholder="Kelas" value={kelas} onChangeText={setKelas} style={{ borderWidth:1, marginVertical:5 }}/>
+
+      <Button title="Tambah Santri" onPress={tambahSantri} />
+
+      <FlatList
+        data={santri}
+        renderItem={({ item, index }) => (
+          <View style={{ marginTop: 10, padding:10, borderWidth:1 }}>
+            <Text>{item.nama} ({item.kelas})</Text>
+            <Text>Hadir: {item.hadir}</Text>
+            <Button title="Tambah Hadir" onPress={() => tambahHadir(index)} />
+          </View>
+        )}
+      />
+    </View>
+  );
+}
